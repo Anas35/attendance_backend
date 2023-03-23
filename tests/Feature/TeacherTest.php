@@ -176,4 +176,122 @@ class TeacherTest extends TestCase
         $response->assertStatus(404);
         $response->assertJsonStructure(['message']);
     }
+
+    public function test_update()
+    {
+        $teacher = $this->postJson(route('teacher.login'), [
+            'email' => 'temp555@gmail.com',
+            'password' => 'password',
+        ])->json();
+
+        $update_data = [
+            'teacherName' => 'temp55',
+            'email' => 'temp555@gmail.com',
+            'departmentId' => 1,
+        ];
+
+        $response = $this->putJson(route('teacher.update', 555), $update_data, [
+            'Authorization' => 'Bearer '.$teacher['token'],
+        ]);
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['teacherName' => 'temp55']);
+        $response->assertJsonPath('data.departmentId', 1);
+        $response->assertJsonStructure([
+            'data' => [
+                'teacherId',
+                'teacherName',
+                'email',
+                'departmentId',
+            ],
+        ]);
+    }
+
+    public function test_update_auth()
+    {
+        $update_data = [
+            'teacherName' => 'temp55',
+            'email' => 'temp555@gmail.com',
+            'departmentId' => 1,
+        ];
+
+        $response = $this->putJson(route('teacher.update', 555), $update_data);
+        $response->assertStatus(401);
+        $response->assertJsonStructure(['message']);
+    }
+
+    public function test_update_auth_other_user()
+    {
+        $teacher = $this->postJson(route('teacher.register'), [
+            'teacherId' => '101',
+            'teacherName' => 'Teacher',
+            'email' => 'example@gmail.com',
+            'password' => 'password',
+            'departmentId' => 1,
+            'profile' => UploadedFile::fake()->image('temp.jpg')
+        ])->json();
+
+        $update_data = [
+            'teacherName' => 'temp55',
+            'email' => 'temp555@gmail.com',
+            'departmentId' => 1,
+        ];
+
+        $response = $this->putJson(route('teacher.update', 555), $update_data, [
+            'Authorization' => 'Bearer '.$teacher['token'],
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJsonStructure(['message']);
+    }
+
+    public function test_update_validation()
+    {
+        $teacher = $this->postJson(route('teacher.login'), [
+            'email' => 'temp555@gmail.com',
+            'password' => 'password',
+        ])->json();
+
+        $update_data = [
+            'email' => 'temp@gmail.com',
+            'departmentId' => 1,
+        ];
+
+        $response = $this->putJson(route('teacher.update', 555), $update_data, [
+            'Authorization' => 'Bearer '.$teacher['token'],
+        ]);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('teacherName');
+        $this->assertDatabaseMissing('teachers', ['email' => 'temp@gmail.com']);   
+    }
+
+    public function test_update_with_image()
+    {
+        Storage::fake('local');
+
+        $teacher = $this->postJson(route('teacher.register'), [
+            'teacherId' => '101',
+            'teacherName' => 'Teacher',
+            'email' => 'example@gmail.com',
+            'password' => 'password',
+            'departmentId' => 1,
+            'profile' => UploadedFile::fake()->image('temp.jpg'),
+        ])->json();
+        
+        $this->assertTrue(Storage::disk('local')->exists('\teachers\\101.png'));
+        Storage::disk('local')->delete('\teachers\\101.png');
+        $this->assertFalse(Storage::disk('local')->exists('\teachers\\101.png'));
+
+        $update_data = [
+            'teacherName' => 'Teacher',
+            'email' => 'example@gmail.com',
+            'departmentId' => 1,
+            'profile' => UploadedFile::fake()->image('new_file.png'),
+        ];
+
+        $response = $this->putJson(route('teacher.update', 101), $update_data, [
+            'Authorization' => 'Bearer '.$teacher['token'],
+        ]);
+        $response->assertStatus(200);
+        $this->assertTrue(Storage::disk('local')->exists('\teachers\\101.png'));
+    }
 }

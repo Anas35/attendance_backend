@@ -17,7 +17,7 @@ class RecordResource extends JsonResource
         return [
             'recordId' => $this->when(isset($this->record_id), fn() => $this->record_id),
             'regNo' => $this->when(isset($this->reg_no), fn() => $this->reg_no),
-            'subjectId' => $this->when(isset($this->subject_id), fn() => $this->subject_id),
+            'subjectId' => $this->when(isset($this->subject_id), fn() => (int) $this->subject_id),
             'subjectName' => $this->when(
                 isset($this->subject_name) || isset($this->subject->subject_name), 
                 fn() => $this->subject_name ?? $this->subject->subject_name,

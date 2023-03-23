@@ -15,8 +15,9 @@ class UpdateTeacherRequest extends FormRequest
     {
         
         $user = $this->user();
+        $teacher = request()->route('teacher');
 
-        return $user != null && $user->tokenCan('teacher-level');
+        return $user != null && $user->tokenCan('teacher-level') && $user->teacher_id == $teacher->teacher_id;
     }
 
     /**

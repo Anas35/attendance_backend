@@ -4,13 +4,13 @@ namespace App\Http\Controllers\api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\RecordResource;
+use App\Http\Resources\V1\StudentRecordResource;
 use App\Models\Record;
 use App\Http\Requests\V1\StoreBulkRecordRequest;
 use App\Models\Student;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class RecordController extends Controller
 {
@@ -32,6 +32,29 @@ class RecordController extends Controller
 
     public function studentsRecords(Student $student) {
         
+        $class_records = DB::table('records')
+            ->selectRaw(DB::raw('records.reg_no'))
+            ->selectRaw(DB::raw('students.student_name'))
+            ->selectRaw(DB::raw('SUM(is_present = 1) as present'))
+            ->selectRaw(DB::raw('SUM(is_present = 0) as absent'))
+            ->selectRaw(DB::raw('round(AVG(is_present = 1) * 100, 0) as percentage'))
+            ->where('records.reg_no', '=', $student->reg_no)
+            ->leftjoin('students','students.reg_no','=', 'records.reg_no')
+            ->whereExists(function ($query) {
+                $date = request()->input('from');
+                if (isset($date)) {
+                    $query->whereDate('date', '>=', Carbon::parse($date));
+                }
+            })
+            ->whereExists(function ($query) {
+                $date = request()->input('until');
+                if (isset($date)) {
+                    $query->whereDate('date', '<=', Carbon::parse($date));
+                }
+            })
+            ->groupBy('reg_no')
+            ->get();
+
         $records = DB::table('records')
             ->selectRaw(DB::raw('records.subject_id'))
             ->selectRaw(DB::raw('subjects.subject_name'))
@@ -39,13 +62,13 @@ class RecordController extends Controller
             ->selectRaw(DB::raw('SUM(records.is_present = 0) as absent'))
             ->selectRaw(DB::raw('round(AVG(records.is_present = 1) * 100, 0) as percentage'))
             ->where('records.reg_no', '=', $student->reg_no)
+            ->leftjoin('subjects','subjects.subject_id','=','records.subject_id')
             ->whereExists(function ($query) {
                 $date = request()->input('from');
                 if (isset($date)) {
                     $query->whereDate('date', '>=', Carbon::parse($date));
                 }
             })
-            ->leftjoin('subjects','subjects.subject_id','=','records.subject_id')
             ->whereExists(function ($query) {
                 $date = request()->input('until');
                 if (isset($date)) {
@@ -55,12 +78,24 @@ class RecordController extends Controller
             ->groupBy('subject_id')
             ->get();
 
-        $subjectId = request()->input('subjectId');
-        if (isset($subjectId)) {
-            $records = $records->where('subject_id', '=', $subjectId);
-        }
-            
-        return RecordResource::collection($records);
+            $class_records = collect($class_records)->first();
+
+            if ($class_records == null) {
+                return response()->json([
+                    'data' => [
+                        'regNo' => $student->reg_no,
+                        'studentName' => $student->student_name,
+                        'present' => '0',
+                        'absent' => '0',
+                        'percentage' => '0',
+                        'records' => [],
+                    ]
+                ], 200);
+            } else {
+                $class_records->records = $records;
+            }
+
+        return new StudentRecordResource($class_records);
     }
 
     public function classRecords($classId) {
@@ -84,6 +119,12 @@ class RecordController extends Controller
                 }
             })
             ->groupBy('reg_no')
+            ->whereExists(function ($query) {
+                $reg_no = request()->input('regNo');
+                if (isset($reg_no)) {
+                    $query->where('reg_no', '=', $reg_no);
+                }
+            })
             ->get();
         
         $subjectId = request()->input('subjectId');
