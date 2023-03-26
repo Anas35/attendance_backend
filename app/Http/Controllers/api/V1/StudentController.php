@@ -79,16 +79,17 @@ class StudentController extends Controller
 
     public function show(Student $student)
     {
-        return new StudentResource($student);
+        $result = Student::with(['department', 'class'])->find($student->reg_no);
+        return new StudentResource($result);
     }
 
     public function update(UpdateStudentRequest $request, Student $student)
     {
-        $student->roll_no = (int) $request->get('rollNo');
         $student->student_name = $request->get('studentName');
         $student->email = $request->get('email');
         $student->department_id = (int) $request->get('departmentId');
         $student->class_id = (int) $request->get('classId');
+        $student->save();
 
         if ($request->has('profile')) {
             $request->file('profile')->storeAs('students', $student->reg_no.'.png');

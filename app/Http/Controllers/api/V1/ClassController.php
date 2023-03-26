@@ -15,6 +15,12 @@ class ClassController extends Controller
     {
         try {
             $classes = ClassModel::all();
+            $department_id = request()->input('departmentId');
+
+            if (isset($department_id)) {
+                $classes = $classes->where('department_id', '=', $department_id);
+            }
+
             return ClassResource::collection($classes);
         } catch (\Throwable $th) {
             error_log($th->getMessage());

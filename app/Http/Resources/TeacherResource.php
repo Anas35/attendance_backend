@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\V1\DepartmentResource;
+use App\Models\Department;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class TeacherResource extends JsonResource
@@ -18,7 +20,7 @@ class TeacherResource extends JsonResource
             'teacherId' => $this->teacher_id,
             'teacherName' => $this->teacher_name,
             'email' => $this->email,
-            'departmentId' => (int) $this->department_id,
+            'department' => new DepartmentResource($this->department),
         ];
     }
 }

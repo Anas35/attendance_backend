@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\V1\ClassResource;
+use App\Http\Resources\V1\DepartmentResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class StudentResource extends JsonResource
@@ -16,12 +18,10 @@ class StudentResource extends JsonResource
     {
         return [
             'regNo' => $this->reg_no,
-            'rollNo' => $this->roll_no,
             'studentName' => $this->student_name,
             'email' => $this->email,
-            'departmentId' => $this->department_id,
-            'classId' => $this->class_id,
-            'token' => $this->when(isset($this->token), fn() => $this->token)
+            'department' => new DepartmentResource($this->department),
+            'class' =>  new ClassResource($this->class),
         ];
     }
 }

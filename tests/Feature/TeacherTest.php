@@ -139,18 +139,21 @@ class TeacherTest extends TestCase
             'password' => 'password',
         ])->json();
 
-        $response = $this->getJson(route('teacher.show', 555), [
+        $response = $this->getJson(route('teacher.show', $teacher['id']), [
             'Authorization' => 'Bearer '.$teacher['token'],
         ]);
         $response->assertStatus(200);
         $response->assertJsonFragment(['teacherName' => 'Temp555']);
-        $response->assertJsonPath('data.departmentId', 1);
+        $response->assertJsonFragment(['departmentId' => 1]);
         $response->assertJsonStructure([
             'data' => [
                 'teacherId',
                 'teacherName',
                 'email',
-                'departmentId',
+                'department' => [
+                    'departmentId',
+                    'departmentName',
+                ],
             ],
         ]);
     }
@@ -195,13 +198,16 @@ class TeacherTest extends TestCase
         ]);
         $response->assertStatus(200);
         $response->assertJsonFragment(['teacherName' => 'temp55']);
-        $response->assertJsonPath('data.departmentId', 1);
+        $response->assertJsonFragment(['departmentId' => 1]);
         $response->assertJsonStructure([
             'data' => [
                 'teacherId',
                 'teacherName',
                 'email',
-                'departmentId',
+                'department' => [
+                    'departmentId',
+                    'departmentName'
+                ],
             ],
         ]);
     }

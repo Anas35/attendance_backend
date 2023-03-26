@@ -82,7 +82,8 @@ class TeacherController extends Controller
 
     public function show(Teacher $teacher)
     {
-        return new TeacherResource($teacher);
+        $result = Teacher::with(['department'])->find($teacher->teacher_id);
+        return new TeacherResource($result);
     }
 
     public function update(UpdateTeacherRequest $request, Teacher $teacher)
@@ -90,6 +91,7 @@ class TeacherController extends Controller
         $teacher->teacher_name = $request->get('teacherName');
         $teacher->email = $request->get('email');
         $teacher->department_id = $request->get('departmentId');
+        $teacher->save();
 
         if ($request->has('profile')) {
             $request->file('profile')->storeAs('teachers', $teacher->teacher_id.'.png');

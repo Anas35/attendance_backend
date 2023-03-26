@@ -20,11 +20,14 @@ class RecordController extends Controller
     }
 
     public function todayStudentRecords(Student $student) {
+
+        $input = request()->input('date');
+        $date = isset($input) ? Carbon::parse($input) : Carbon::now()->toDate();
         
         $records = Record::with('subject')
             ->where('records.reg_no', '=', $student->reg_no)
-            ->whereDate('date', '>=', Carbon::now()->toDate())
-            ->whereDate('date', '<=', Carbon::now()->toDate())
+            ->whereDate('date', '>=', $date)
+            ->whereDate('date', '<=', $date)
             ->get(['subject_id', 'is_present']);
             
         return RecordResource::collection($records);
