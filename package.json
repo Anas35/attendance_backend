@@ -1,6 +1,9 @@
 {
     "private": true,
     "scripts": {
+        "build": "npm run production",
+        "prod": "npm run production",
+        "production": "mix --production"
         "dev": "vite",
         "build": "vite build"
     },
