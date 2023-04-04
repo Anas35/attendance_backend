@@ -14,6 +14,11 @@ class SubjectSeeder extends Seeder
      */
     public function run()
     {
-        \App\Models\Subject::factory(5)->create();
+        $array = ['Computer Graphics', 'Programming in C', 'Computer Network', 'DBMS',];
+        foreach ($array as $sub) {
+            \App\Models\Subject::factory(1)->create([
+                'subject_name' => $sub,
+            ]);
+        }
     }
 }

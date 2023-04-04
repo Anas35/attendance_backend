@@ -18,7 +18,7 @@ class RecordFactory extends Factory
     {
         return [
             'reg_no' => \App\Models\Student::all('reg_no')->random(),
-            'class_id' => \App\Models\ClassModel::all('class_id')->random(),
+            'class_id' => \App\Models\ClassModel::all('class_id')->first(),
             'subject_id' => \App\Models\Subject::all('subject_id')->random(),
             'teacher_id' => \App\Models\Teacher::all('teacher_id')->random(),
             'is_present' => rand(0, 1),

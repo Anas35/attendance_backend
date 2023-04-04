@@ -17,7 +17,7 @@ class DepartmentSeeder extends Seeder
         $array = ['Computer Science', 'Maths', 'Chemistry', 'Physics', 'Commerce'];
         foreach ($array as $deptName) {
             \App\Models\Department::factory(1)->create([
-                'name' => $deptName
+                'department_name' => $deptName
             ]);
         }
     }
